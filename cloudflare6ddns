@@ -1,5 +1,6 @@
 # Update Cloudflare DNS IPv6 address script
 # RouterOS version >= 6.44 is required
+# Update time 17:35:50 UTC Thursday, 22 February 2024 by hyk0083
 
 # ** CONFIGURE SECTION **
 
@@ -7,8 +8,7 @@
 :local wanif    "lan1"
 
 # Cloudflare section
-:local email    "e-mail"
-:local key      "token"
+:local key      "Bearer token"
 :local zoneId   "zoneId"
 :local hostId   "hostId"
 
@@ -32,7 +32,7 @@
   :log info "[Cloudflare DDNS] IPv6 address for interface $wanif has been changed to $ip6new."
 
   :local url    "https://api.cloudflare.com/client/v4/zones/$zoneId/dns_records/$hostId"
-  :local header "X-Auth-Email: $email, X-Auth-Key: $key, content-type: application/json"
+  :local header "Authorization: $key, content-type: application/json"
   :local data   "{\"type\":\"AAAA\",\"name\":\"$hostName\",\"content\":\"$ip6new\",\"ttl\":120}"
 
 #  :log info "[Cloudflare DDNS] URL: $url"
