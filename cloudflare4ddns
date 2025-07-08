@@ -1,19 +1,19 @@
 # Update Cloudflare DNS IPv4 address script
 # RouterOS version >= 6.44 is required
-# Update time 17:35:25 UTC Thursday, 22 February 2024 by hyk0083
+# Update time 20:05:00 UTC+7 Thursday, 08 July 2025 by magicstone1412
 
 # ** CONFIGURE SECTION **
 
 # WAN IPv4 interface
-:local wanif    "wan1"
+:local wanif    "pppoe-out1"
 
 # Cloudflare section
-:local key      "Bearer token"
-:local zoneId   "zoneId"
-:local hostId   "hostId"
+:local key      "Bearer Bearer $bearer_token-J"
+:local zoneId   "$zoneId"
+:local hostId   "$hostId"
 
 # Domain hostname
-:local hostName "host.yourdomain.com"
+:local hostName "home.skywirex.com"
 
 # ** END OF CONFIGURE SECTION **
 
@@ -35,26 +35,19 @@
   :local header "Authorization: $key, content-type: application/json"
   :local data   "{\"type\":\"A\",\"name\":\"$hostName\",\"content\":\"$ip4new\",\"ttl\":120}"
 
+# Uncomment for debugging
 #  :log info "[Cloudflare DDNS] URL: $url"
 #  :log info "[Cloudflare DDNS] HEADER: $header"
 #  :log info "[Cloudflare DDNS] DATA: $data"
   :log info "[Cloudflare DDNS] Updating host $hostName address."
 
-  :local jsonAnswer [/tool fetch mode=https http-method=put http-header-field=$header http-data=$data url=$url as-value output=user]
+  :local fetchResult [/tool fetch mode=https http-method=put http-header-field=$header http-data=$data url=$url as-value output=user]
 
-  :if ([:len $jsonAnswer] > 0) do={
-
-    /system script run "JParseFunctions"; global JSONLoads; global JSONUnload
-    :local result ([$JSONLoads ($jsonAnswer->"data")]->"success")
-    $JSONUnload
-
-    :if ($result = true) do={
-      :log info "[Cloudflare DDNS] Successfully updated IPv4 address to $ip4new."
-      :set ip4wan $ip4new
-    } else={
-      :log error "[Cloudflare DDNS] Error while updating IPv4 address."
-    }
+  :if ($fetchResult->"status" = "finished") do={
+    :log info "[Cloudflare DDNS] Successfully updated IPv4 address to $ip4new."
+    :set ip4wan $ip4new
   } else={
-    :log error "[Cloudflare DDNS] No answer from Cloudflare API."
+    :local fetchStatus ($fetchResult->"status")
+    :log error "[Cloudflare DDNS] Error while updating IPv4 address. Status: $fetchStatus"
   }
 }
